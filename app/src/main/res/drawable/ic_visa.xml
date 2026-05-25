@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="60dp"
+    android:height="20dp"
+    android:viewportWidth="120"
+    android:viewportHeight="40">
+    <!-- Visa wordmark simplified -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44.3,2.2L36.6,37.8H28.4L36.1,2.2H44.3Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M74.6,3C72.8,2.3 70,1.5 66.5,1.5C58.3,1.5 52.5,5.8 52.5,11.8C52.4,16.3 56.6,18.8 59.8,20.3C63,21.8 64.1,22.8 64.1,24.2C64,26.3 61.5,27.3 59.2,27.3C55.8,27.3 54,26.8 51.1,25.5L49.9,25L48.6,33.2C50.7,34.1 54.6,34.9 58.6,35C67.3,35 73,30.8 73.1,24.3C73.1,20.8 70.9,18.2 66.1,16C63.2,14.5 61.4,13.5 61.4,12C61.5,10.7 62.9,9.3 66.1,9.3C68.7,9.3 70.7,9.8 72.2,10.5L73,10.9L74.6,3Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M90.7,2.2C88.6,2.2 87,2.3 85.9,4.5L74.1,37.8H82.8L84.5,33H95.1L96.1,37.8H104L97.1,2.2H90.7ZM86.8,26.5C87.5,24.7 90.2,17.3 90.2,17.3C90.2,17.4 90.9,15.5 91.3,14.3L91.8,17.1C91.8,17.1 93.5,25.1 93.9,26.5H86.8Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M25.4,2.2L17.3,26.1L16.4,21.8C14.9,16.8 10.3,11.4 5.2,8.7L12.5,37.7H21.3L34.3,2.2H25.4Z" />
+</vector>

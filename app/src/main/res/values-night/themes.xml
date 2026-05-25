@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.TapRead" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/md_primary</item>
+        <item name="colorOnPrimary">@color/md_on_primary</item>
+        <item name="colorSecondary">@color/md_secondary</item>
+        <item name="android:colorBackground">@color/md_background</item>
+        <item name="colorSurface">@color/md_surface</item>
+        <item name="colorSurfaceVariant">@color/md_surface_variant</item>
+        <item name="colorOnBackground">@color/md_on_background</item>
+        <item name="colorOnSurface">@color/md_on_surface</item>
+        <item name="colorOutline">@color/md_outline</item>
+        <item name="android:statusBarColor">@color/md_primary_variant</item>
+        <item name="android:navigationBarColor">@color/md_background</item>
+    </style>
+</resources>

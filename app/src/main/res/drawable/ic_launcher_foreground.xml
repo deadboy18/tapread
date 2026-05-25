@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Card body — rounded rectangle, slightly tilted for dynamism -->
+    <group
+        android:pivotX="54"
+        android:pivotY="58"
+        android:rotation="-8">
+        <path
+            android:fillColor="#00B8D4"
+            android:pathData="M24,40 L72,40 C75,40 77,42 77,45 L77,71 C77,74 75,76 72,76 L24,76 C21,76 19,74 19,71 L19,45 C19,42 21,40 24,40 Z" />
+        <!-- Gold chip on card -->
+        <path
+            android:fillColor="#FFD54F"
+            android:pathData="M28,50 L36,50 L36,57 L28,57 Z" />
+        <!-- Magnetic stripe -->
+        <path
+            android:fillColor="#00838F"
+            android:pathData="M19,62 L77,62 L77,66 L19,66 Z" />
+    </group>
+
+    <!-- NFC signal waves — bold arcs emanating from top-right -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M68,38 C72,34 78,34 82,38" />
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M65,32 C72,25 83,25 90,32" />
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M62,26 C72,16 88,16 98,26" />
+
+    <!-- Small dot at wave origin -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,42 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
+
+</vector>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App chrome — matching Banking Card Reader Pro cyan/blue -->
+    <color name="md_primary">#03A9F4</color>
+    <color name="md_primary_variant">#0288D1</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    <color name="md_secondary">#E91E63</color>
+
+    <!-- Surface / background — LIGHT and clean -->
+    <color name="md_background">#F5F5F5</color>
+    <color name="md_surface">#FFFFFF</color>
+    <color name="md_surface_variant">#F0F4F7</color>
+    <color name="md_on_background">#212121</color>
+    <color name="md_on_surface">#212121</color>
+    <color name="md_outline">#E0E0E0</color>
+
+    <!-- APDU log colors -->
+    <color name="apdu_cmd">#2E7D32</color>
+    <color name="apdu_resp">#1565C0</color>
+    <color name="apdu_parse">#616161</color>
+
+    <!-- Status -->
+    <color name="status_ok">#2E7D32</color>
+    <color name="status_warn">#EF6C00</color>
+    <color name="status_err">#C62828</color>
+
+    <!-- Card face gradients -->
+    <color name="card_default_start">#546E7A</color>
+    <color name="card_default_end">#37474F</color>
+    <color name="card_visa_start">#1A1F71</color>
+    <color name="card_visa_end">#0D1357</color>
+    <color name="card_mc_start">#EB001B</color>
+    <color name="card_mc_end">#F79E1B</color>
+
+    <color name="ic_launcher_background">#0B1220</color>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TapRead</string>
+    <string name="tap_your_card">Hold your NFC paycard\nto the back of your phone</string>
+    <string name="hold_card_hint">Compatible with Visa, Mastercard, Amex, JCB, UnionPay</string>
+    <string name="nfc_icon">NFC icon</string>
+    <string name="share_log">Share APDU Log</string>
+    <string name="no_transactions">No transaction log on this card</string>
+    <string name="no_transactions_hint">Many new cards no longer expose transaction history for privacy reasons.</string>
+    <string name="tab_card_detail">CARD DETAIL</string>
+    <string name="tab_transactions">TRANSACTIONS</string>
+    <string name="tab_log">LOG</string>
+    <string name="reading_title">Reading in progress…</string>
+    <string name="reading_message">Please do not remove or move card during reading.</string>
+</resources>

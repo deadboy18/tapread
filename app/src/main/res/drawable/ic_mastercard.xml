@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="30dp"
+    android:viewportWidth="96"
+    android:viewportHeight="60">
+    <!-- Red circle -->
+    <path
+        android:fillColor="#EB001B"
+        android:pathData="M35,30 m-22,0 a22,22 0 1,1 44,0 a22,22 0 1,1 -44,0" />
+    <!-- Orange/yellow circle -->
+    <path
+        android:fillColor="#F79E1B"
+        android:pathData="M61,30 m-22,0 a22,22 0 1,1 44,0 a22,22 0 1,1 -44,0" />
+    <!-- Overlap area (darker) -->
+    <path
+        android:fillColor="#FF5F00"
+        android:pathData="M48,12.5 C43.5,16.5 40.5,22.5 40.5,30 C40.5,37.5 43.5,43.5 48,47.5 C52.5,43.5 55.5,37.5 55.5,30 C55.5,22.5 52.5,16.5 48,12.5 Z" />
+</vector>

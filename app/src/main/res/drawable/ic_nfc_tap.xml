@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="180dp"
+    android:viewportWidth="180"
+    android:viewportHeight="180">
+
+    <!-- Phone body -->
+    <path
+        android:fillColor="#546E7A"
+        android:pathData="M30,25 L100,25 C105,25 108,28 108,33 L108,155 C108,160 105,163 100,163 L30,163 C25,163 22,160 22,155 L22,33 C22,28 25,25 30,25 Z" />
+
+    <!-- Phone screen -->
+    <path
+        android:fillColor="#ECEFF1"
+        android:pathData="M30,40 L100,40 L100,145 L30,145 Z" />
+
+    <!-- Phone home button -->
+    <path
+        android:fillColor="#78909C"
+        android:pathData="M65,152 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+
+    <!-- Card (tilted, approaching phone) -->
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M95,70 L165,55 C168,54 170,56 170,59 L158,115 C157,118 155,120 152,120 L82,135 C79,136 77,134 77,131 L89,75 C90,72 92,70 95,70 Z" />
+
+    <!-- Card chip -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M100,85 L112,82 L110,92 L98,95 Z" />
+
+    <!-- Card magnetic stripe -->
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M92,100 L160,84 L158,94 L90,110 Z" />
+
+    <!-- NFC waves (emanating from phone) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#03A9F4"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M108,75 C115,72 120,75 120,82" />
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#03A9F4"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M108,68 C120,63 128,68 128,82" />
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#03A9F4"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M108,61 C125,54 136,61 136,82" />
+
+</vector>
