@@ -13,63 +13,88 @@ Made with 💀 by [deadboy](https://github.com/deadboy18)
 
 ## Table of Contents
 
-**Part I — Project**
-1. [What It Does](#1-what-it-does)
-2. [Features](#2-features)
-3. [Screenshots](#3-screenshots)
-4. [Supported Cards](#4-supported-cards)
+<details open>
+<summary><b>Part I — Project</b></summary>
+<br>
 
-**Part II — The Science**
-5. [How a Contactless Card Actually Works (RF Physics)](#5-how-a-contactless-card-actually-works-rf-physics)
-6. [The Protocol Stack — ISO 14443 → ISO 7816 → EMV](#6-the-protocol-stack)
-7. [APDU Anatomy — Every Byte Explained](#7-apdu-anatomy)
-8. [The EMV Application Hierarchy](#8-the-emv-application-hierarchy)
-9. [BER-TLV — How the Chip Encodes Data](#9-ber-tlv-encoding)
+- **1.** [What It Does](#1-what-it-does)
+- **2.** [Features](#2-features)
+- **3.** [Screenshots](#3-screenshots)
+- **4.** [Supported Cards](#4-supported-cards)
 
-**Part III — The Full Read Flow (matched to the code)**
-10. [Step-by-Step Walkthrough with Real APDUs](#10-step-by-step-walkthrough)
-11. [The Complete EMV Tag Dictionary](#11-the-complete-emv-tag-dictionary)
-12. [Track 2 Decoded](#12-track-2-decoded)
-13. [The Service Code (5F30)](#13-the-service-code-5f30)
-14. [Cardholder Verification Method List (8E)](#14-cvm-list-decoded)
-15. [Application Interchange Profile (82)](#15-application-interchange-profile-aip-decoded)
-16. [Application Usage Control (9F07)](#16-application-usage-control-auc-decoded)
-17. [Terminal & Card Transaction Qualifiers (9F66 / 9F6C)](#17-terminal--card-transaction-qualifiers-ttq--ctq)
-18. [Application Cryptograms — TC, ARQC, AAC](#18-application-cryptograms--tc-arqc-aac)
-19. [GENERATE AC — The Command You'll Never See in TapRead](#19-generate-ac--the-command-youll-never-see-in-tapread)
-20. [Offline Data Authentication — The RSA Cert Chain](#20-offline-data-authentication--the-rsa-cert-chain)
-21. [The 9F4F Trick — Transaction Time Extraction](#21-the-9f4f-trick--transaction-time-extraction)
-22. [ATR, ATS, and CPLC — Identifying the Chip](#22-atr-ats-and-cplc)
-23. [Historical Bytes — Decoding the ATS Payload](#23-historical-bytes--decoding-the-ats-payload)
-24. [Scheme Detection Logic](#24-scheme-detection-logic)
-25. [PAN, IIN/BIN, and Luhn — How Numbers Are Built](#25-pan-iinbin-and-luhn)
-26. [Tokenized Wallet Detection](#26-tokenized-wallet-detection)
-27. [EMV Payment Tokenisation — How DPANs Get Provisioned](#27-emv-payment-tokenisation--how-dpans-get-provisioned)
-28. [Contactless-Disabled Card Detection](#28-contactless-disabled-card-detection)
-29. [EMV Contactless Kernels — C-1 through C-8](#29-emv-contactless-kernels)
-30. [Visa MSD vs qVSDC vs VSDC — Three Modes, One Card](#30-visa-msd-vs-qvsdc-vs-vsdc)
-31. [Mastercard PayPass — MagStripe Mode vs M/Chip](#31-mastercard-paypass--magstripe-mode-vs-mchip)
-32. [Relay Attacks — Why Contactless Has Distance-Bounding Now](#32-relay-attacks)
-33. [Android HCE — The Other Side of the Conversation](#33-android-hce)
+</details>
 
-**Part IV — The Code**
-34. [App Architecture](#34-app-architecture)
-35. [The devnied Library Bridge](#35-the-devnied-library-bridge)
-36. [File-by-File Code Walkthrough](#36-file-by-file-code-walkthrough)
-37. [Threading, State, and Persistence](#37-threading-state-and-persistence)
-38. [Reflection Tricks (Where & Why)](#38-reflection-tricks)
-39. [Build & Install](#39-build--install)
-40. [Project Structure](#40-project-structure)
-41. [Dependencies](#41-dependencies)
+<details>
+<summary><b>Part II — The Science</b></summary>
+<br>
 
-**Part V — Security & Operations**
-42. [Permissions & Privacy Model](#42-permissions--privacy-model)
-43. [Security & Threat Model](#43-security--threat-model)
-44. [Troubleshooting](#44-troubleshooting)
-45. [Limitations](#45-limitations)
-46. [Roadmap](#46-roadmap)
-47. [References & Further Reading](#47-references--further-reading)
-48. [Credits & License](#48-credits--license)
+- **5.** [How a Contactless Card Actually Works (RF Physics)](#5-how-a-contactless-card-actually-works-rf-physics)
+- **6.** [The Protocol Stack — ISO 14443 → ISO 7816 → EMV](#6-the-protocol-stack)
+- **7.** [APDU Anatomy — Every Byte Explained](#7-apdu-anatomy)
+- **8.** [The EMV Application Hierarchy](#8-the-emv-application-hierarchy)
+- **9.** [BER-TLV — How the Chip Encodes Data](#9-ber-tlv-encoding)
+
+</details>
+
+<details>
+<summary><b>Part III — The Full Read Flow</b> <sub><i>(matched to the code)</i></sub></summary>
+<br>
+
+- **10.** [Step-by-Step Walkthrough with Real APDUs](#10-step-by-step-walkthrough)
+- **11.** [The Complete EMV Tag Dictionary](#11-the-complete-emv-tag-dictionary)
+- **12.** [Track 2 Decoded](#12-track-2-decoded)
+- **13.** [The Service Code (5F30)](#13-the-service-code-5f30)
+- **14.** [Cardholder Verification Method List (8E)](#14-cvm-list-decoded)
+- **15.** [Application Interchange Profile (82)](#15-application-interchange-profile-aip-decoded)
+- **16.** [Application Usage Control (9F07)](#16-application-usage-control-auc-decoded)
+- **17.** [Terminal & Card Transaction Qualifiers (9F66 / 9F6C)](#17-terminal--card-transaction-qualifiers-ttq--ctq)
+- **18.** [Application Cryptograms — TC, ARQC, AAC](#18-application-cryptograms--tc-arqc-aac)
+- **19.** [GENERATE AC — The Command You'll Never See in TapRead](#19-generate-ac--the-command-youll-never-see-in-tapread)
+- **20.** [Offline Data Authentication — The RSA Cert Chain](#20-offline-data-authentication--the-rsa-cert-chain)
+- **21.** [The 9F4F Trick — Transaction Time Extraction](#21-the-9f4f-trick--transaction-time-extraction)
+- **22.** [ATR, ATS, and CPLC — Identifying the Chip](#22-atr-ats-and-cplc)
+- **23.** [Historical Bytes — Decoding the ATS Payload](#23-historical-bytes--decoding-the-ats-payload)
+- **24.** [Scheme Detection Logic](#24-scheme-detection-logic)
+- **25.** [PAN, IIN/BIN, and Luhn — How Numbers Are Built](#25-pan-iinbin-and-luhn)
+- **26.** [Tokenized Wallet Detection](#26-tokenized-wallet-detection)
+- **27.** [EMV Payment Tokenisation — How DPANs Get Provisioned](#27-emv-payment-tokenisation--how-dpans-get-provisioned)
+- **28.** [Contactless-Disabled Card Detection](#28-contactless-disabled-card-detection)
+- **29.** [EMV Contactless Kernels — C-1 through C-8](#29-emv-contactless-kernels)
+- **30.** [Visa MSD vs qVSDC vs VSDC — Three Modes, One Card](#30-visa-msd-vs-qvsdc-vs-vsdc)
+- **31.** [Mastercard PayPass — MagStripe Mode vs M/Chip](#31-mastercard-paypass--magstripe-mode-vs-mchip)
+- **32.** [Relay Attacks — Why Contactless Has Distance-Bounding Now](#32-relay-attacks)
+- **33.** [Android HCE — The Other Side of the Conversation](#33-android-hce)
+
+</details>
+
+<details>
+<summary><b>Part IV — The Code</b></summary>
+<br>
+
+- **34.** [App Architecture](#34-app-architecture)
+- **35.** [The devnied Library Bridge](#35-the-devnied-library-bridge)
+- **36.** [File-by-File Code Walkthrough](#36-file-by-file-code-walkthrough)
+- **37.** [Threading, State, and Persistence](#37-threading-state-and-persistence)
+- **38.** [Reflection Tricks (Where & Why)](#38-reflection-tricks)
+- **39.** [Build & Install](#39-build--install)
+- **40.** [Project Structure](#40-project-structure)
+- **41.** [Dependencies](#41-dependencies)
+
+</details>
+
+<details>
+<summary><b>Part V — Security & Operations</b></summary>
+<br>
+
+- **42.** [Permissions & Privacy Model](#42-permissions--privacy-model)
+- **43.** [Security & Threat Model](#43-security--threat-model)
+- **44.** [Troubleshooting](#44-troubleshooting)
+- **45.** [Limitations](#45-limitations)
+- **46.** [Roadmap](#46-roadmap)
+- **47.** [References & Further Reading](#47-references--further-reading)
+- **48.** [Credits & License](#48-credits--license)
+
+</details>
 
 ---
 
