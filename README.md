@@ -1,5 +1,13 @@
 # TapRead
 
+<p align="center">
+  <a href="https://github.com/deadboy18/tapread/releases/latest"><img src="https://img.shields.io/github/v/release/deadboy18/tapread?color=blue&label=release" alt="Latest release"></a>
+  <a href="https://github.com/deadboy18/tapread/blob/main/LICENSE"><img src="https://img.shields.io/github/license/deadboy18/tapread?color=green" alt="License"></a>
+  <img src="https://img.shields.io/badge/platform-Android%207.0%2B-3DDC84?logo=android&logoColor=white" alt="Platform: Android 7.0+">
+  <img src="https://img.shields.io/badge/language-Kotlin-7F52FF?logo=kotlin&logoColor=white" alt="Language: Kotlin">
+  <img src="https://img.shields.io/badge/internet-no-red" alt="No internet permission">
+</p>
+
 > **Tap. Read. Know.**
 >
 > An Android NFC reader for EMV contactless bank cards.
@@ -177,18 +185,17 @@ The data TapRead reads is the same data your card transmits to every contactless
 ## 3. Screenshots
 
 <p align="center">
-  <img src="screenshots/screenshot_nfc_scan.png" width="220" alt="NFC Scan">
-  <img src="screenshots/screenshot_card_detail.png" width="220" alt="Card Detail">
-  <img src="screenshots/screenshot_card_detail_extended.png" width="220" alt="Extended Card Details">
+  <img src="screenshots/screenshot_nfc_scan.png" width="220" alt="Home — tap to scan">
+  <img src="screenshots/screenshot_card_detail.png" width="220" alt="Home — with card">
+  <img src="screenshots/screenshot_card_detail_extended.png" width="220" alt="Card Detail + Extended">
 </p>
-<p align="center"><sub><b>Home — tap to scan</b> &nbsp;·&nbsp; <b>Card Detail</b> &nbsp;·&nbsp; <b>Extended Details</b></sub></p>
+<p align="center"><sub><b>Home (empty)</b> &nbsp;·&nbsp; <b>Home (with card)</b> &nbsp;·&nbsp; <b>Card Detail + Extended</b></sub></p>
 
 <p align="center">
-  <img src="screenshots/screenshot_transactions_dark.png" width="220" alt="Transactions (Dark)">
-  <img src="screenshots/screenshot_transactions_light.png" width="220" alt="Transactions (Light)">
+  <img src="screenshots/screenshot_transactions_dark.png" width="220" alt="Transactions">
   <img src="screenshots/screenshot_apdu_log.png" width="220" alt="APDU Log">
 </p>
-<p align="center"><sub><b>Transactions (Dark)</b> &nbsp;·&nbsp; <b>Transactions (Light)</b> &nbsp;·&nbsp; <b>APDU Log + TLV Tree</b></sub></p>
+<p align="center"><sub><b>Transactions</b> (with parsed time + cryptogram via the <a href="#21-the-9f4f-trick--transaction-time-extraction">9F4F trick</a>) &nbsp;·&nbsp; <b>APDU Log + TLV Tree</b></sub></p>
 
 <p align="center">
   <img src="screenshots/screenshot_settings.png" width="220" alt="Settings">
@@ -1235,14 +1242,17 @@ So `9F07 = FF00`:
 
 That's a typical unrestricted credit card.
 
-A "domestic only, POS only" card might be `9F07 = A8 00`:
+A "domestic only" card might be `9F07 = AB 00`:
 
-- `1010 1000`
+- Byte 1: `1010 1011`
 - Bit 8: domestic cash ✓
 - Bit 6: domestic goods ✓
 - Bit 4: domestic services ✓
-- Bit 2: at ATMs ✓ (note: this is needed for the card to work at all if it has restrictions)
-- Bit 1: at non-ATM terminals ✓
+- Bit 2: at ATMs ✓ (needed for the card to work in any ATM)
+- Bit 1: at non-ATM terminals ✓ (needed for the card to work in POS)
+- All international bits (7, 5, 3) cleared → card refuses cross-border use
+
+Note that even a restricted card must set bits 2 and 1 in byte 1 — otherwise the card would be unusable anywhere. A bare `A8 00` (bits 8/6/4 only, no terminal-type bits) would refuse every transaction.
 
 The card uses AUC to refuse transactions outside its allowed scope before even generating a cryptogram.
 
@@ -1420,16 +1430,20 @@ Contactless transactions compress this. Per Visa's qVSDC and Mastercard's PayPas
 A real CDOL1 from a Visa card:
 
 ```
-8C 1B  9F02 06  9F03 06  9F1A 02  95 05  5F2A 02  9A 03  9C 01  9F37 04  9F35 01  9F45 02  9F4C 08  9F34 03
+8C 21  9F02 06  9F03 06  9F1A 02  95 05  5F2A 02  9A 03  9C 01  9F37 04  9F35 01  9F45 02  9F4C 08  9F34 03
 └─┘└┘
  │  │
- │  └─ length = 27 bytes
+ │  └─ length of the tag-length list itself = 33 bytes (0x21)
  └─ tag 8C (CDOL1)
 ```
 
-The card is saying: "If you want me to generate an AC, send me these in this order: amount authorized (6B), amount other (6B), terminal country (2B), TVR (5B), transaction currency (2B), transaction date (3B), transaction type (1B), unpredictable number (4B), terminal type (1B), data auth code (2B), ICC dynamic number (8B), CVM results (3B). Total = 47 bytes of CDOL data."
+The card is saying: "If you want me to generate an AC, send me these in this order: amount authorized (6B), amount other (6B), terminal country (2B), TVR (5B), transaction currency (2B), transaction date (3B), transaction type (1B), unpredictable number (4B), terminal type (1B), data auth code (2B), ICC dynamic number (8B), CVM results (3B). **Total CDOL data sent by terminal = 43 bytes** (the sum of the lengths)."
 
-The card uses these to compute the AC: `AC = MAC_SK_AC(amount || country || ... || ATC)`.
+Two different sizes are at play here, which is easy to confuse:
+- **0x21 = 33** — the size of the CDOL1 *itself* (the tag-length list inside the card)
+- **43 bytes** — the size of the *data* the terminal builds and sends back in GENERATE AC
+
+The card uses these 43 bytes to compute the AC: `AC = MAC_SK_AC(amount || country || ... || ATC)`.
 
 ### Why TapRead Doesn't Do This
 
