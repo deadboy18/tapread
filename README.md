@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/deadboy18/tapread/releases/latest"><img src="https://img.shields.io/github/v/release/deadboy18/tapread?color=blue&label=release" alt="Latest release"></a>
-  <a href="https://github.com/deadboy18/tapread/blob/main/LICENSE"><img src="https://img.shields.io/github/license/deadboy18/tapread?color=green" alt="License"></a>
+  <a href="https://github.com/deadboy18/tapread/blob/main/LICENSE"><img src="https://img.shields.io/github/license/deadboy18/tapread?color=green&v=2" alt="License"></a>
   <img src="https://img.shields.io/badge/platform-Android%207.0%2B-3DDC84?logo=android&logoColor=white" alt="Platform: Android 7.0+">
   <img src="https://img.shields.io/badge/language-Kotlin-7F52FF?logo=kotlin&logoColor=white" alt="Language: Kotlin">
   <img src="https://img.shields.io/badge/internet-no-red" alt="No internet permission">
