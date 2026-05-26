@@ -151,9 +151,25 @@ The data TapRead reads is the same data your card transmits to every contactless
 
 ## 3. Screenshots
 
-| Home | Card Detail | Transactions | Log |
-| ---- | ----------- | ------------ | --- |
-| NFC tap illustration | Scheme-colored card face with brand logo | Expandable rows with time + cryptogram | Color-coded APDU + TLV tree |
+<p align="center">
+  <img src="screenshots/screenshot_nfc_scan.png" width="220" alt="NFC Scan">
+  <img src="screenshots/screenshot_card_detail.png" width="220" alt="Card Detail">
+  <img src="screenshots/screenshot_card_detail_extended.png" width="220" alt="Extended Card Details">
+</p>
+<p align="center"><sub><b>Home — tap to scan</b> &nbsp;·&nbsp; <b>Card Detail</b> &nbsp;·&nbsp; <b>Extended Details</b></sub></p>
+
+<p align="center">
+  <img src="screenshots/screenshot_transactions_dark.png" width="220" alt="Transactions (Dark)">
+  <img src="screenshots/screenshot_transactions_light.png" width="220" alt="Transactions (Light)">
+  <img src="screenshots/screenshot_apdu_log.png" width="220" alt="APDU Log">
+</p>
+<p align="center"><sub><b>Transactions (Dark)</b> &nbsp;·&nbsp; <b>Transactions (Light)</b> &nbsp;·&nbsp; <b>APDU Log + TLV Tree</b></sub></p>
+
+<p align="center">
+  <img src="screenshots/screenshot_settings.png" width="220" alt="Settings">
+  <img src="screenshots/screenshot_navigation_drawer.png" width="220" alt="Navigation Drawer">
+</p>
+<p align="center"><sub><b>Settings</b> &nbsp;·&nbsp; <b>Navigation Drawer</b></sub></p>
 
 ---
 
