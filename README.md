@@ -2,7 +2,9 @@
 
 > **Tap. Read. Know.**
 
-An Android NFC card reader for EMV contactless bank cards. Built for fintech professionals — POS sellers, terminal installers, payment gateway developers, and NFC/RFID engineers.
+[![Download APK](https://img.shields.io/github/v/release/deadboy18/tapread?label=Download%20APK&style=for-the-badge)](https://github.com/deadboy18/tapread/releases/latest/download/tapread-v1.1.0-release.apk)
+
+An Android NFC card reader for EMV contactless bank cards and **Touch 'n Go (TNG) stored-value cards**. Built for fintech professionals — POS sellers, terminal installers, payment gateway developers, and NFC/RFID engineers.
 
 Made with 💀 by [deadboy](https://github.com/deadboy18)
 
@@ -10,13 +12,53 @@ Made with 💀 by [deadboy](https://github.com/deadboy18)
 
 ## What It Does
 
-Hold any contactless bank card against your phone. TapRead reads every piece of public data the chip exposes and displays it in three tabs:
+Hold any contactless card against your phone. TapRead automatically detects the card type and reads everything:
 
-- **CARD DETAIL** — Visual card face with scheme branding + full extended data
-- **TRANSACTIONS** — Last contactless transactions with date, time, amount, cryptogram
-- **LOG** — Raw APDU command/response log with parsed TLV tree
+**EMV bank cards** — Visa, Mastercard, Amex, and 15+ other schemes. Reads PAN, expiry, Track 1/2, AIDs, ATR, CPLC, transaction history, CVM list, and full APDU log with TLV parsing.
+
+**Touch 'n Go cards** — Malaysian TNG stored-value cards including MyKad+TNG combo cards and standalone TNG cards. Reads balance, serial number, card number, expiry, transaction history (toll, reload, transit, retail), chip type, and raw sector hex dump. Uses recovered master keys with XOR-based key derivation — works on any TNG card in Malaysia.
 
 No internet. No ads. No analytics. Everything stays on your device.
+
+---
+
+## Touch 'n Go Reader
+
+TapRead includes a full TNG MIFARE Classic reader with embedded master keys. When you tap a TNG card, the app derives per-card sector keys from the UID, authenticates to all accessible sectors, and decodes the data.
+
+### What It Reads
+
+| Field | Source | Example |
+|-------|--------|---------|
+| Balance | Sector 2, value block | RM 41.66 |
+| Serial number | Derived from UID | 3268275621 |
+| Card number | Sector 0 block 2 | 6014640011297642xx |
+| Expiry | Sector 0 block 2 | 2032-12 |
+| TNG fingerprint | Sector 0 block 1 | ✓ Verified (00 01 02...0F) |
+| Chip type | MifareClassic API | MIFARE Classic 1K / 4K / Plus |
+| Transaction count | Sector 3, value block | 25 transactions |
+| Last reload | Sector 7 | RM 49.50, 2026-06-04 14:47:11 |
+| Last toll | Sector 5 | Amount, timestamp, agency code |
+| Last transit | Sector 6 | Entry/exit station, timestamps |
+| Last retail | Sector 8 | Amount, timestamp, terminal |
+| Raw hex dump | All sectors | Full sector-by-sector hex |
+
+### Supported TNG Cards
+
+| Card Type | Chip | SAK | Status |
+|-----------|------|-----|--------|
+| MyKad + TNG combo | Infineon MIFARE Classic 1K | 0x88 | ✓ Full read |
+| Standalone TNG | MIFARE Classic 4K (Plus in Classic mode) | 0x38 | ✓ Full read |
+
+### How It Works
+
+The app uses 14 recovered master keys and an XOR-based key derivation function (KDF) to derive per-card sector keys from the card's 4-byte UID. The KDF is the same one used by all TNG infrastructure — same master keys work on every TNG card in Malaysia.
+
+```
+UID → KDF(master_key, uid) → per-card sector key → authenticate → read
+```
+
+Sector 5 factory template detection prevents false "Toll" transactions from appearing on brand-new cards that have never been used.
 
 ---
 
@@ -24,12 +66,14 @@ No internet. No ads. No analytics. Everything stays on your device.
 
 ### Card Reading
 - Reads Visa, Mastercard, Amex, JCB, UnionPay, Discover, RuPay, Maestro, CB, Dankort, Interac, and more
+- **Touch 'n Go MIFARE Classic** — balance, serial, card number, expiry, transactions, raw dump
+- Automatic card type detection — EMV (IsoDep) vs TNG (MifareClassic) routed automatically
 - Automatic scheme detection from AID prefix, application label, and PAN range
 - Multi-application support (reads all AIDs on the chip)
 - Contactless-disabled detection (PPSE 6A82/6985 → "NFC is locked on your card")
 - Tokenized card detection (Apple Pay, Google Pay, Samsung Pay, Garmin, Fitbit, Huawei)
 
-### Data Extracted
+### EMV Data Extracted
 | Data | Source | Details |
 |------|--------|---------|
 | Card number (PAN) | Tag 5A | Full or masked, copyable |
@@ -88,6 +132,9 @@ No internet. No ads. No analytics. Everything stays on your device.
 ### Payment Schemes
 Visa, Mastercard, American Express, JCB, UnionPay, Discover, Maestro, CB (France), Dankort (Denmark), CoGeBan (Italy), Banrisul (Brazil), SPAN (Saudi Arabia), Interac (Canada), RuPay (India), Verve (Nigeria), TROY (Turkey), MIR (Russia)
 
+### Touch 'n Go (Malaysia)
+MyKad + TNG combo cards, standalone TNG cards (both 1K and 4K variants)
+
 ### Tokenized Wallets
 Apple Pay, Google Pay, Samsung Pay, Garmin Pay, Fitbit Pay, Huawei Pay, Xiaomi Pay
 
@@ -98,7 +145,14 @@ Cards with NFC payment turned off in the bank app are detected and labeled with 
 
 ## How It Works
 
-### NFC Communication Flow
+### NFC Tag Routing
+```
+Tag discovered
+├── Has IsoDep?  → EMV reader (bank cards)
+└── Has MifareClassic / NfcA without IsoDep?  → TNG reader
+```
+
+### EMV Communication Flow
 ```
 1. Phone enables ReaderMode (NFC-A + NFC-B)
 2. Card enters RF field → IsoDep connection established
@@ -110,26 +164,44 @@ Cards with NFC payment turned off in the bank app are detected and labeled with 
 8. IsoDep closed
 ```
 
+### TNG Communication Flow
+```
+1. Read UID (4 bytes, no authentication needed)
+2. Derive serial number from UID (reverse bytes → decimal)
+3. For each sector 0–15:
+   a. Derive per-card key = master_key XOR pattern(UID)
+   b. Authenticate with Key A (or Key B for sectors 11, 15)
+   c. Read 3 data blocks (skip sector trailer)
+4. Decode: balance (sector 2), card number (sector 0),
+   transactions (sectors 5–8), counter (sector 3)
+5. Detect factory template in sector 5 → skip if not a real transaction
+```
+
 ### Architecture
 ```
 MainActivity
 ├── NfcDispatcher          ReaderMode lifecycle
-├── EmvReader              Card reading + data extraction
+├── EmvReader              EMV card reading + data extraction
 │   ├── IsoDepProvider     Bridges IsoDep ↔ devnied IProvider
 │   ├── ApduLogger         Captures all APDU exchanges
 │   └── TlvParser          BER-TLV parsing + EMV tag dictionary
+├── TngCardReader          TNG MIFARE Classic reader
+│   ├── Master keys        14 Key A + 2 Key B master keys
+│   ├── KDF                XOR-based key derivation from UID
+│   └── Sector decoders    Balance, identity, transactions, counter
 ├── CardsViewModel         Shared state + persistence
 │   └── CardStorage        SharedPreferences + Gson
 ├── HomeFragment           Card list + NFC tap prompt
-├── DetailFragment         3-tab ViewPager2
-│   ├── CardDetailFragment Card face + extended details + CVM + service code
-│   ├── TransactionsFragment Expandable transaction list
-│   └── LogFragment        APDU log + TLV tree
+├── DetailFragment         ViewPager2 (tabs vary by card type)
+│   ├── CardDetailFragment EMV card face + extended details
+│   ├── TngDetailFragment  TNG balance card + info + transactions
+│   ├── TransactionsFragment EMV transaction list
+│   └── LogFragment        APDU log / raw hex dump
 ├── SettingsFragment       Dark mode, mask PAN, export, clear
 └── AboutFragment          Credits + easter eggs
 ```
 
-### Transaction Time Extraction
+### Transaction Time Extraction (EMV)
 The devnied library doesn't parse tag 9F21 (Transaction Time). TapRead extracts it directly:
 
 1. **Find tag 9F4F** (Log Format) in APDU responses — defines the flat record structure
@@ -141,6 +213,9 @@ The devnied library doesn't parse tag 9F21 (Transaction Time). TapRead extracts 
 ---
 
 ## Build & Install
+
+### Download
+[![Download APK](https://img.shields.io/github/v/release/deadboy18/tapread?label=Download%20APK&style=for-the-badge)](https://github.com/deadboy18/tapread/releases/latest/download/tapread-v1.1.0-release.apk)
 
 ### Prerequisites
 - Android Studio Hedgehog or later (Iguana recommended)
@@ -158,7 +233,7 @@ File → Open → select tapread/ folder
 
 # Or build a signed release APK:
 ./gradlew assembleRelease
-# Output: app/build/outputs/apk/release/tapread-v1.0.0-release.apk
+# Output: app/build/outputs/apk/release/tapread-v1.1.0-release.apk
 ```
 
 ### Windows Users
@@ -168,11 +243,7 @@ Run this before first build to clean Windows Explorer's auto-generated files:
 ```
 
 ### Signing
-| | |
-|--|--|
-| Keystore | `keystore/tapread.jks` |
-| Alias | `tapread` |
-| Password | `deadboy` |
+Release builds are signed with a private keystore not included in this repository. To build a release APK, create your own keystore and update `app/build.gradle.kts` with your signing config.
 
 ---
 
@@ -184,25 +255,28 @@ tapread/
 │   ├── assets/logback.xml
 │   ├── kotlin/com/tapread/nfc/
 │   │   ├── App.kt                    Application init
-│   │   ├── MainActivity.kt           NFC dispatch + drawer
+│   │   ├── MainActivity.kt           NFC dispatch + drawer + tag routing
 │   │   ├── model/
 │   │   │   ├── ApduEntry.kt          APDU command/response pair
-│   │   │   ├── CardData.kt           All parsed card fields
-│   │   │   └── ScanResult.kt         Card + log + timestamp
+│   │   │   ├── CardData.kt           All parsed EMV card fields
+│   │   │   ├── ScanResult.kt         EMV or TNG result + timestamp
+│   │   │   └── TngData.kt            TNG card fields + transactions
 │   │   ├── nfc/
 │   │   │   ├── ApduLogger.kt         Captures APDU exchanges
 │   │   │   ├── EmvReader.kt          Core EMV reading logic
 │   │   │   ├── IsoDepProvider.kt     devnied IProvider bridge
-│   │   │   └── NfcDispatcher.kt      ReaderMode lifecycle
+│   │   │   ├── NfcDispatcher.kt      ReaderMode lifecycle
+│   │   │   └── TngCardReader.kt      TNG MIFARE Classic reader + KDF
 │   │   ├── ui/
 │   │   │   ├── CardsViewModel.kt     Shared state + persistence
 │   │   │   ├── about/AboutFragment.kt
 │   │   │   ├── detail/
-│   │   │   │   ├── CardDetailFragment.kt
+│   │   │   │   ├── CardDetailFragment.kt  EMV card detail
 │   │   │   │   ├── DetailFragment.kt
-│   │   │   │   ├── DetailPagerAdapter.kt
-│   │   │   │   ├── LogFragment.kt
-│   │   │   │   └── TransactionsFragment.kt
+│   │   │   │   ├── DetailPagerAdapter.kt  Routes EMV vs TNG tabs
+│   │   │   │   ├── LogFragment.kt         APDU log / raw hex
+│   │   │   │   ├── TngDetailFragment.kt   TNG balance + info + txns
+│   │   │   │   └── TransactionsFragment.kt EMV transactions
 │   │   │   ├── home/
 │   │   │   │   ├── CardListAdapter.kt
 │   │   │   │   └── HomeFragment.kt
@@ -262,6 +336,7 @@ The `INTERNET` permission is deliberately absent. The app cannot make network re
 - **Mask PAN by default** — middle digits hidden until toggled
 - **User-initiated export only** — JSON share requires explicit tap
 - **NFC only** — reads contactless data that any POS terminal can read
+- **TNG keys are read-only** — the app authenticates with Key A (read access) and cannot write to cards
 
 ---
 
@@ -270,12 +345,15 @@ The `INTERNET` permission is deliberately absent. The app cannot make network re
 | Problem | Solution |
 |---------|----------|
 | App doesn't react to card taps | Check NFC is enabled in phone Settings |
-| "Unsupported card type" | Card is MIFARE/FeliCa, not EMV (TnG, transit cards) |
-| No transactions shown | Many modern cards don't expose transaction logs for privacy |
+| TNG card not detected | Samsung/NXP NFC controllers required for MIFARE Classic — some phones (Pixel) don't support it |
+| TNG shows "MifareClassic unavailable" | Your phone's NFC chip doesn't support MIFARE Classic |
+| TNG balance shows wrong value | Report it — timestamp/balance parsing is still being verified across card generations |
+| New TNG card shows no toll transaction | Correct — sector 5 factory template is now detected and skipped |
+| "Unsupported card type" | Card uses FeliCa or other non-EMV/non-MIFARE protocol |
+| No transactions shown | Many modern EMV cards don't expose transaction logs for privacy |
 | No transaction time | Card's log format (9F4F) doesn't include tag 9F21 |
 | "NFC is locked on your card" | Contactless disabled in bank app — enable it there |
 | Card number shows dots | PAN masking is enabled — toggle in Settings |
-| Crash on "Choose an action" | Fixed in v1.0.0 — ensure latest build |
 | `desktop.ini` build error | Run `.\clean-desktop-ini.ps1` (Windows only) |
 
 ---
@@ -284,10 +362,9 @@ The `INTERNET` permission is deliberately absent. The app cannot make network re
 
 - **Not a payment app** — cannot make transactions or charges
 - **Not a card cloner** — cannot write data to cards or emulate cards
-- **Not a security tool** — reads only public data, same as any POS terminal
-- **Not a hacker tool** — all data read is freely exposed by the card per EMV spec
-
-The data TapRead reads is the same data your card transmits to every contactless POS terminal you tap at a store. No encryption is broken. No secrets are extracted.
+- **Not a balance editor** — reads TNG balance but cannot modify it
+- **Not a security tool** — reads only public data (EMV) or data accessible with recovered read keys (TNG)
+- **Not a hacker tool** — EMV data is freely exposed per spec; TNG read keys are documented in open-source projects
 
 ---
 
@@ -295,6 +372,7 @@ The data TapRead reads is the same data your card transmits to every contactless
 
 - **EMV Library**: [devnied/EMV-NFC-Paycard-Enrollment](https://github.com/devnied/EMV-NFC-Paycard-Enrollment) v3.1.0
 - **Reference**: [AndroidCrypto/Android-EMV-NFC-Paycard-Example](https://github.com/AndroidCrypto/Android-EMV-NFC-Paycard-Example)
+- **TNG Research**: Key derivation based on [Metrodroid](https://github.com/metrodroid/metrodroid) open-source transit reader
 - **EMV Specifications**: EMVCo Book 1-4, ISO/IEC 7816
 - **Built by**: [deadboy](https://github.com/deadboy18)
 
