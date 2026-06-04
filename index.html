@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TNG Serial Reader — Tap your Touch 'n Go card</title>
+<meta name="description" content="Find your Touch 'n Go serial number instantly. Tap your TNG card or MyKad on your phone — no app install needed.">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface-2: #1a2236;
+  --border: #1e2a42;
+  --text: #e8ecf4;
+  --text-dim: #7a8ba8;
+  --accent: #00a3e0;
+  --accent-glow: rgba(0, 163, 224, 0.15);
+  --accent-dim: #006d96;
+  --success: #34d399;
+  --success-glow: rgba(52, 211, 153, 0.12);
+  --warn: #f59e0b;
+  --warn-glow: rgba(245, 158, 11, 0.1);
+  --error: #ef4444;
+  --radius: 16px;
+  --font: 'DM Sans', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Ambient background ── */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ambient::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  top: -200px; right: -200px;
+  background: radial-gradient(circle, rgba(0,163,224,0.06) 0%, transparent 70%);
+  animation: drift 20s ease-in-out infinite alternate;
+}
+.ambient::after {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  bottom: -150px; left: -150px;
+  background: radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 70%);
+  animation: drift 25s ease-in-out infinite alternate-reverse;
+}
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, -30px) scale(1.1); }
+}
+
+/* ── Layout ── */
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  padding: 32px 0 8px;
+}
+.logo {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.header h1 span { color: var(--accent); }
+.header p {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+/* ── Scan button ── */
+.scan-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.scan-btn {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.scan-btn:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 40px var(--accent-glow), inset 0 0 30px var(--accent-glow);
+}
+.scan-btn:active {
+  transform: scale(0.96);
+}
+.scan-btn.scanning {
+  border-color: var(--accent);
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+.scan-btn.success {
+  border-color: var(--success);
+  box-shadow: 0 0 40px var(--success-glow);
+}
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+  50% { box-shadow: 0 0 50px var(--accent-glow), 0 0 80px rgba(0,163,224,0.05); }
+}
+
+.scan-icon {
+  width: 56px;
+  height: 56px;
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.5;
+  transition: stroke 0.3s;
+}
+.scan-btn:hover .scan-icon,
+.scan-btn.scanning .scan-icon { stroke: var(--accent); }
+.scan-btn.success .scan-icon { stroke: var(--success); }
+
+.scan-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  transition: color 0.3s;
+}
+.scan-btn:hover .scan-label,
+.scan-btn.scanning .scan-label { color: var(--accent); }
+.scan-btn.success .scan-label { color: var(--success); }
+
+.scan-hint {
+  margin-top: 20px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.6;
+  opacity: 0.7;
+}
+
+/* ── Ripple rings ── */
+.ripple-container {
+  position: absolute;
+  inset: -30px;
+  pointer-events: none;
+}
+.ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  opacity: 0;
+}
+.scan-btn.scanning .ripple {
+  animation: ripple-out 2s ease-out infinite;
+}
+.scan-btn.scanning .ripple:nth-child(2) { animation-delay: 0.6s; }
+.scan-btn.scanning .ripple:nth-child(3) { animation-delay: 1.2s; }
+@keyframes ripple-out {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* ── Result card ── */
+.result {
+  display: none;
+  margin-top: 24px;
+  width: 100%;
+}
+.result.show { display: block; animation: slide-up 0.4s ease-out; }
+@keyframes slide-up {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.result-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.result-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #005ba1, #00a3e0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.result-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.result-title strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.result-rows {
+  padding: 8px 0;
+}
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  transition: background 0.15s;
+}
+.result-row:hover {
+  background: var(--surface-2);
+}
+.result-row-label {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.result-row-value {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.result-row-value.serial {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.copy-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font);
+  text-transform: uppercase;
+}
+.copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.copy-btn.copied {
+  border-color: var(--success);
+  color: var(--success);
+  background: var(--success-glow);
+}
+
+.result-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.result-footer-text {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+/* ── Not supported banner ── */
+.not-supported {
+  display: none;
+  text-align: center;
+  padding: 24px;
+}
+.not-supported.show { display: block; }
+
+.ns-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+}
+.ns-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  fill: var(--warn);
+}
+.ns-card h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.ns-card p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.ns-list {
+  text-align: left;
+  max-width: 320px;
+  margin: 20px auto;
+  list-style: none;
+}
+.ns-list li {
+  padding: 8px 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.ns-check {
+  color: var(--success);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ns-cross {
+  color: var(--error);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ns-app-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.ns-app-link:hover { opacity: 0.85; }
+
+/* ── Info section ── */
+.info-section {
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.info-card h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.info-card p {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.info-card a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.info-card a:hover { text-decoration: underline; }
+
+.compat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.compat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  padding: 6px 0;
+}
+.compat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.compat-dot.yes { background: var(--success); }
+.compat-dot.no { background: var(--error); }
+.compat-dot.partial { background: var(--warn); }
+
+.footer {
+  text-align: center;
+  padding: 24px 0 8px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+.footer a { color: var(--text-dim); text-decoration: none; }
+.footer a:hover { color: var(--accent); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<div class="wrapper">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">TNG Serial Reader</div>
+    <h1>Find your Touch 'n Go <span>serial number</span></h1>
+    <p>Tap your TNG card or MyKad on your phone. No app needed — works in Chrome on Android.</p>
+  </header>
+
+  <!-- Scan area (shown when Web NFC is available) -->
+  <div class="scan-section" id="scanSection">
+    <button class="scan-btn" id="scanBtn" aria-label="Tap to scan NFC card">
+      <div class="ripple-container">
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+      </div>
+      <svg class="scan-icon" viewBox="0 0 56 56">
+        <rect x="8" y="4" width="40" height="48" rx="4" />
+        <path d="M22 28 c0-4 3.5-7 8-7" />
+        <path d="M18 28 c0-7 5.5-12 12-12" />
+        <path d="M14 28 c0-10 7.5-17 16-17" />
+        <circle cx="30" cy="28" r="2" fill="currentColor" stroke="none" />
+      </svg>
+      <span class="scan-label" id="scanLabel">TAP TO SCAN</span>
+    </button>
+    <p class="scan-hint" id="scanHint">Place your TNG card or MyKad flat against the back of your phone</p>
+
+    <!-- Result -->
+    <div class="result" id="result">
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-badge">TNG</div>
+          <div class="result-title">
+            Touch 'n Go Card
+            <strong id="resultCardType">MyKad + TNG</strong>
+          </div>
+        </div>
+        <div class="result-rows">
+          <div class="result-row">
+            <span class="result-row-label">TNG Serial Number</span>
+            <span class="result-row-value serial" id="resultSerial">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-row-label">NFC UID</span>
+            <span class="result-row-value">
+              <span id="resultUid">—</span>
+              <button class="copy-btn" onclick="copyValue('resultUid', this)">COPY</button>
+            </span>
+          </div>
+          <div class="result-row">
+            <span class="result-row-label">Serial Number</span>
+            <span class="result-row-value">
+              <span id="resultSerialCopy">—</span>
+              <button class="copy-btn" onclick="copyValue('resultSerialCopy', this)">COPY</button>
+            </span>
+          </div>
+        </div>
+        <div class="result-footer">
+          <p class="result-footer-text">
+            Use this 10-digit serial number to link your card in the
+            <a href="https://www.tngdigital.com.my/" target="_blank" rel="noopener">TNG eWallet app</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not supported (shown when Web NFC unavailable) -->
+  <div class="not-supported" id="notSupported">
+    <div class="ns-card">
+      <svg class="ns-icon" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M24 14v14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="24" cy="34" r="1.5" fill="currentColor"/>
+      </svg>
+      <h2>NFC Not Available</h2>
+      <p>Your browser or device doesn't support Web NFC. This feature requires:</p>
+      <ul class="ns-list">
+        <li><span class="ns-check">✓</span> Chrome 89+ on Android</li>
+        <li><span class="ns-check">✓</span> Samsung Internet on Android</li>
+        <li><span class="ns-check">✓</span> Device with NFC hardware</li>
+        <li><span class="ns-cross">✗</span> iPhone / iPad — Apple does not support Web NFC in Safari as of June 2026</li>
+        <li><span class="ns-cross">✗</span> Firefox, Edge, Opera on any platform</li>
+        <li><span class="ns-cross">✗</span> Desktop browsers (no NFC hardware)</li>
+      </ul>
+      <p>For full card reading including balance and transactions, use the TapRead Android app:</p>
+      <a href="https://github.com/deadboy18/tapread/releases/latest" class="ns-app-link" target="_blank" rel="noopener">
+        ↓ Download TapRead APK
+      </a>
+    </div>
+  </div>
+
+  <!-- Info section -->
+  <div class="info-section">
+    <div class="info-card">
+      <h3>Device Compatibility</h3>
+      <div class="compat-grid">
+        <div class="compat-item"><span class="compat-dot yes"></span>Chrome Android</div>
+        <div class="compat-item"><span class="compat-dot yes"></span>Samsung Internet</div>
+        <div class="compat-item"><span class="compat-dot no"></span>iPhone / Safari</div>
+        <div class="compat-item"><span class="compat-dot no"></span>Firefox</div>
+        <div class="compat-item"><span class="compat-dot no"></span>Desktop browsers</div>
+        <div class="compat-item"><span class="compat-dot partial"></span>Opera Android</div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>What This Page Reads</h3>
+      <p>
+        Only the NFC serial number (UID) — a 4-byte identifier broadcast by every NFC card without any authentication.
+        Your card data, balance, and transactions <strong>cannot</strong> be accessed through a web browser.
+        For full TNG card reading, use <a href="https://github.com/deadboy18/tapread" target="_blank">TapRead</a> on Android.
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Privacy</h3>
+      <p>
+        Everything happens locally in your browser. No data is sent to any server.
+        This page has no analytics, no cookies, no tracking.
+        You can verify by viewing the page source — it's a single HTML file.
+      </p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    Built by <a href="https://github.com/deadboy18">deadboy</a> · <a href="https://github.com/deadboy18/tapread">TapRead on GitHub</a>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const scanBtn = document.getElementById('scanBtn');
+const scanLabel = document.getElementById('scanLabel');
+const scanHint = document.getElementById('scanHint');
+const scanSection = document.getElementById('scanSection');
+const notSupported = document.getElementById('notSupported');
+const result = document.getElementById('result');
+const toast = document.getElementById('toast');
+
+// ── Check Web NFC support ──
+const hasWebNFC = ('NDEFReader' in window);
+
+if (!hasWebNFC) {
+  scanSection.querySelector('.scan-btn').style.display = 'none';
+  scanSection.querySelector('.scan-hint').style.display = 'none';
+  notSupported.classList.add('show');
+}
+
+// ── UID → TNG Serial ──
+function uidToSerial(uidHex) {
+  // UID comes as "XX:XX:XX:XX" or "XXXXXXXX"
+  const clean = uidHex.replace(/[:\s-]/g, '').toUpperCase();
+  if (clean.length !== 8) return null;
+  
+  // Reverse bytes: AABBCCDD → DDCCBBAA
+  const reversed = clean.match(/.{2}/g).reverse().join('');
+  
+  // Convert to decimal
+  const decimal = parseInt(reversed, 16);
+  return decimal.toString();
+}
+
+function formatUid(hex) {
+  const clean = hex.replace(/[:\s-]/g, '').toUpperCase();
+  return clean.match(/.{2}/g).join(':');
+}
+
+// ── Scan ──
+let scanning = false;
+let abortController = null;
+
+scanBtn.addEventListener('click', async () => {
+  if (!hasWebNFC) return;
+  
+  if (scanning) {
+    // Stop scanning
+    if (abortController) abortController.abort();
+    scanning = false;
+    scanBtn.classList.remove('scanning');
+    scanLabel.textContent = 'TAP TO SCAN';
+    scanHint.textContent = 'Place your TNG card or MyKad flat against the back of your phone';
+    return;
+  }
+  
+  try {
+    scanning = true;
+    scanBtn.classList.remove('success');
+    scanBtn.classList.add('scanning');
+    scanLabel.textContent = 'SCANNING...';
+    scanHint.textContent = 'Hold your card steady against the back of your phone';
+    result.classList.remove('show');
+    
+    abortController = new AbortController();
+    const ndef = new NDEFReader();
+    
+    await ndef.scan({ signal: abortController.signal });
+    
+    ndef.addEventListener('reading', ({ serialNumber }) => {
+      // serialNumber is like "XX:XX:XX:XX" from Web NFC
+      handleCardRead(serialNumber);
+    });
+    
+    ndef.addEventListener('readingerror', () => {
+      showToast('Could not read card — try again');
+    });
+    
+  } catch (err) {
+    scanning = false;
+    scanBtn.classList.remove('scanning');
+    scanLabel.textContent = 'TAP TO SCAN';
+    
+    if (err.name === 'AbortError') return;
+    
+    if (err.name === 'NotAllowedError') {
+      showToast('NFC permission denied — check browser settings');
+    } else if (err.name === 'NotSupportedError') {
+      showToast('NFC not supported on this device');
+      notSupported.classList.add('show');
+    } else {
+      showToast('NFC error: ' + err.message);
+    }
+  }
+});
+
+function handleCardRead(serialNumber) {
+  // Stop scanning
+  scanning = false;
+  scanBtn.classList.remove('scanning');
+  scanBtn.classList.add('success');
+  scanLabel.textContent = 'CARD READ';
+  scanHint.textContent = 'Tap the button to scan another card';
+  
+  // Web NFC serialNumber format varies: "XX:XX:XX:XX" or hex string
+  const uid = serialNumber || '';
+  const uidFormatted = formatUid(uid);
+  const serial = uidToSerial(uid);
+  
+  // Populate results
+  document.getElementById('resultUid').textContent = uidFormatted;
+  document.getElementById('resultSerial').textContent = serial || 'Unknown';
+  document.getElementById('resultSerialCopy').textContent = serial || 'Unknown';
+  
+  // Detect card type from UID length (basic heuristic)
+  const uidClean = uid.replace(/[:\s-]/g, '');
+  if (uidClean.length === 8) {
+    document.getElementById('resultCardType').textContent = 'MIFARE Classic — Touch \'n Go';
+  } else if (uidClean.length === 14) {
+    document.getElementById('resultCardType').textContent = '7-byte UID NFC card';
+  } else {
+    document.getElementById('resultCardType').textContent = 'NFC Card';
+  }
+  
+  // Show result
+  result.classList.add('show');
+  
+  // Haptic feedback if available
+  if (navigator.vibrate) navigator.vibrate(50);
+}
+
+// ── Copy ──
+function copyValue(elementId, btn) {
+  const text = document.getElementById(elementId).textContent;
+  if (!text || text === '—') return;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED';
+    btn.classList.add('copied');
+    showToast('Copied: ' + text);
+    setTimeout(() => {
+      btn.textContent = 'COPY';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'COPIED';
+    btn.classList.add('copied');
+    showToast('Copied: ' + text);
+    setTimeout(() => {
+      btn.textContent = 'COPY';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ── Toast ──
+let toastTimeout;
+function showToast(msg) {
+  clearTimeout(toastTimeout);
+  toast.textContent = msg;
+  toast.classList.add('show');
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ── Manual UID entry fallback for testing ──
+// Users can paste a UID in the console: testUid('A5EDCDC2')
+window.testUid = function(hex) {
+  handleCardRead(hex);
+};
+</script>
+
+</body>
+</html>
