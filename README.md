@@ -4,7 +4,7 @@
 
 [![Download APK](https://img.shields.io/github/v/release/deadboy18/tapread?label=Download%20APK&style=for-the-badge)](https://github.com/deadboy18/tapread/releases/latest/download/tapread-v1.1.0-release.apk)
 &nbsp;&nbsp;
-[![Web Reader](https://img.shields.io/badge/TNG%20Serial-Web%20Reader-00a3e0?style=for-the-badge)](https://deadboy18.github.io/tng-serial/)
+[![Web Reader](https://img.shields.io/badge/TNG%20Serial-Web%20Reader-00a3e0?style=for-the-badge)](https://deadboy18.github.io/tapread/)
 
 An Android NFC card reader for EMV contactless bank cards and **Touch 'n Go (TNG) stored-value cards**. Built for fintech professionals — POS sellers, terminal installers, payment gateway developers, and NFC/RFID engineers.
 
