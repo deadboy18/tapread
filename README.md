@@ -3,8 +3,12 @@
 > **Tap. Read. Know.**
 
 [![Download APK](https://img.shields.io/github/v/release/deadboy18/tapread?label=Download%20APK&style=for-the-badge)](https://github.com/deadboy18/tapread/releases/latest/download/tapread-v1.1.0-release.apk)
+&nbsp;&nbsp;
+[![Web Reader](https://img.shields.io/badge/TNG%20Serial-Web%20Reader-00a3e0?style=for-the-badge)](https://deadboy18.github.io/tng-serial/)
 
 An Android NFC card reader for EMV contactless bank cards and **Touch 'n Go (TNG) stored-value cards**. Built for fintech professionals — POS sellers, terminal installers, payment gateway developers, and NFC/RFID engineers.
+
+**Don't want to install an app?** Use the [TNG Serial Web Reader](https://deadboy18.github.io/tng-serial/) — tap your TNG card or MyKad in Chrome on Android to get the 10-digit serial number instantly. No app install needed. *(Balance and sector data require the full Android app.)*
 
 Made with 💀 by [deadboy](https://github.com/deadboy18)
 
@@ -243,7 +247,11 @@ Run this before first build to clean Windows Explorer's auto-generated files:
 ```
 
 ### Signing
-Release builds are signed with a private keystore not included in this repository. To build a release APK, create your own keystore and update `app/build.gradle.kts` with your signing config.
+| | |
+|--|--|
+| Keystore | `keystore/tapread.jks` |
+| Alias | `tapread` |
+| Password | `deadboy` |
 
 ---
 
