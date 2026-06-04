@@ -716,12 +716,13 @@ scanBtn.addEventListener('click', async () => {
     if (err.name === 'AbortError') return;
     
     if (err.name === 'NotAllowedError') {
-      showToast('NFC permission denied — check browser settings');
+      showNfcDisabled();
     } else if (err.name === 'NotSupportedError') {
       showToast('NFC not supported on this device');
       notSupported.classList.add('show');
     } else {
-      showToast('NFC error: ' + err.message);
+      // Generic NFC error — often means NFC is off
+      showNfcDisabled();
     }
   }
 });
@@ -801,6 +802,36 @@ function showToast(msg) {
   toast.textContent = msg;
   toast.classList.add('show');
   toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ── NFC Disabled handling ──
+function showNfcDisabled() {
+  scanning = false;
+  scanBtn.classList.remove('scanning');
+  scanLabel.textContent = 'NFC DISABLED';
+  scanHint.innerHTML = 'NFC is turned off on your device. Enable it in Settings and try again.<br><br>' +
+    '<button onclick="openNfcSettings()" style="' +
+    'background:var(--accent);color:white;border:none;padding:10px 24px;border-radius:10px;' +
+    'font-size:0.85rem;font-weight:600;cursor:pointer;font-family:var(--font);' +
+    'transition:opacity 0.2s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1"' +
+    '>Open NFC Settings</button>';
+}
+
+function openNfcSettings() {
+  // Try Android intent scheme first
+  const androidIntent = 'intent://settings/nfc#Intent;scheme=android-settings;end';
+  const androidDirect = 'android.settings.NFC_SETTINGS';
+  
+  // Try multiple approaches
+  try {
+    // Approach 1: Direct Android settings URI
+    window.location.href = 'intent:#Intent;action=android.settings.NFC_SETTINGS;end';
+  } catch(e) {}
+  
+  // Fallback: tell the user manually
+  setTimeout(() => {
+    showToast('Go to Settings → Connections → NFC and enable it');
+  }, 500);
 }
 
 // ── Manual UID entry fallback for testing ──
