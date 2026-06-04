@@ -78,7 +78,7 @@ class AboutFragment : Fragment(), SensorEventListener {
         })
 
         val info = """
-NFC EMV card reader for fintech professionals.
+NFC card reader for fintech and transit professionals.
 
 Reads contactless bank cards (Visa, Mastercard, Amex, JCB, UnionPay, Discover, RuPay) and displays:
 
@@ -92,7 +92,15 @@ Reads contactless bank cards (Visa, Mastercard, Amex, JCB, UnionPay, Discover, R
 • Tokenization detection (Apple Pay, Google Pay, Samsung Pay)
 • Full APDU command log
 
-Built on devnied/EMV-NFC-Paycard-Enrollment v3.1.0
+Malaysian Touch 'n Go (TNG) card support:
+
+• Balance (MyKad+TNG combo & standalone TNG)
+• Card number, serial, expiry, issue date
+• Transaction history (toll, transit, reload, retail)
+• Raw sector data dump
+• Automatic key derivation — works on any TNG card
+
+EMV built on devnied/EMV-NFC-Paycard-Enrollment v3.1.0
 
 No internet permission. All data stays on device. No ads. No analytics.
 

@@ -26,10 +26,15 @@ class DetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val pagerAdapter = DetailPagerAdapter(this)
+        val scan = viewModel.selectedScan.value
+        val isTng = scan?.isTng == true
+
+        val pagerAdapter = DetailPagerAdapter(this, isTng)
         binding.viewPager.adapter = pagerAdapter
 
-        val tabTitles = listOf("CARD DETAIL", "TRANSACTIONS", "LOG")
+        val tabTitles = if (isTng) listOf("TNG CARD", "RAW DATA")
+                        else listOf("CARD DETAIL", "TRANSACTIONS", "LOG")
+
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabTitles[position]
         }.attach()

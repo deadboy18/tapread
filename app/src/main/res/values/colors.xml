@@ -12,6 +12,7 @@
     <color name="md_surface_variant">#F0F4F7</color>
     <color name="md_on_background">#212121</color>
     <color name="md_on_surface">#212121</color>
+    <color name="md_on_surface_medium">#757575</color>
     <color name="md_outline">#E0E0E0</color>
 
     <!-- APDU log colors -->
@@ -33,4 +34,8 @@
     <color name="card_mc_end">#F79E1B</color>
 
     <color name="ic_launcher_background">#0B1220</color>
+
+    <!-- Touch 'n Go -->
+    <color name="tng_blue">#005BA1</color>
+    <color name="tng_green">#2E7D32</color>
 </resources>

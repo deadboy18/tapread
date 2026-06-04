@@ -36,11 +36,17 @@ class LogFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.selectedScan.observe(viewLifecycleOwner) { scan ->
-            val log = scan?.apduLog ?: emptyList()
-            if (log.isEmpty()) {
-                binding.textLog.text = "No APDU log available."
+            if (scan?.isTng == true) {
+                binding.textLog.text = scan.tng?.rawDump ?: "No sector data"
+                binding.textLog.typeface = android.graphics.Typeface.MONOSPACE
+                binding.textLog.textSize = 12f
             } else {
-                binding.textLog.text = buildColoredLog(log)
+                val log = scan?.apduLog ?: emptyList()
+                if (log.isEmpty()) {
+                    binding.textLog.text = "No APDU log available."
+                } else {
+                    binding.textLog.text = buildColoredLog(log)
+                }
             }
         }
 

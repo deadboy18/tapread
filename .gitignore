@@ -1,29 +1,11 @@
-# Android Studio
 *.iml
-.gradle/
+.gradle
 /local.properties
-/.idea/
-/build/
-/captures/
-.externalNativeBuild/
-.cxx/
-local.properties
-
-# APK/AAB outputs (people should build their own)
-*.apk
-*.aab
-*.ap_
-
-# OS junk
+/.idea
 .DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
 desktop.ini
-Thumbs.db
-*~
-
-# Kotlin/Java
-*.class
-*.jar
-*.war
-
-# Logs
-*.log

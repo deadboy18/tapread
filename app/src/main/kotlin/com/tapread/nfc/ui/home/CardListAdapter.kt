@@ -32,24 +32,32 @@ class CardListAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(scan: ScanResult) {
-            val card = scan.card
-            binding.textScheme.text = card.scheme ?: "Unknown"
-            binding.textPan.text = card.maskedPan
-            binding.textExpiry.text = card.formattedExpiry
-            binding.textHolder.text = card.holderName ?: "NOT SUPPLIED"
-
             val time = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
                 .format(Date(scan.timestampMs))
             binding.textTimestamp.text = time
 
-            // Card face gradient by scheme
-            val gradientRes = when {
-                card.scheme == null -> R.drawable.bg_card_face
-                card.scheme.contains("mastercard", ignoreCase = true) -> R.drawable.bg_card_face_mc
-                card.scheme.contains("visa", ignoreCase = true) -> R.drawable.bg_card_face_visa
-                else -> R.drawable.bg_card_face
+            if (scan.isTng) {
+                val tng = scan.tng!!
+                binding.textScheme.text = "Touch 'n Go"
+                binding.textPan.text = tng.balanceRm
+                binding.textExpiry.text = tng.expiry ?: "—"
+                binding.textHolder.text = "SN: ${tng.serialStr}"
+                binding.cardFace.setBackgroundResource(R.drawable.bg_card_face_tng)
+            } else {
+                val card = scan.card!!
+                binding.textScheme.text = card.scheme ?: "Unknown"
+                binding.textPan.text = card.maskedPan
+                binding.textExpiry.text = card.formattedExpiry
+                binding.textHolder.text = card.holderName ?: "NOT SUPPLIED"
+
+                val gradientRes = when {
+                    card.scheme == null -> R.drawable.bg_card_face
+                    card.scheme.contains("mastercard", ignoreCase = true) -> R.drawable.bg_card_face_mc
+                    card.scheme.contains("visa", ignoreCase = true) -> R.drawable.bg_card_face_visa
+                    else -> R.drawable.bg_card_face
+                }
+                binding.cardFace.setBackgroundResource(gradientRes)
             }
-            binding.cardFace.setBackgroundResource(gradientRes)
 
             binding.root.setOnClickListener {
                 com.tapread.nfc.util.HapticUtil.tick(it)

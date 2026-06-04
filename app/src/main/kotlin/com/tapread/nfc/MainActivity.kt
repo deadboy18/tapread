@@ -1,6 +1,8 @@
 package com.tapread.nfc
 
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
@@ -16,7 +18,11 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.tapread.nfc.databinding.ActivityMainBinding
+import android.nfc.tech.MifareClassic
 import com.tapread.nfc.nfc.EmvReader
+import com.tapread.nfc.nfc.TngCardReader
+import com.tapread.nfc.model.ScanResult
+import com.tapread.nfc.model.TngData
 import com.tapread.nfc.nfc.NfcDispatcher
 import com.tapread.nfc.ui.CardsViewModel
 import com.tapread.nfc.ui.about.AboutFragment
@@ -38,6 +44,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private val viewModel: CardsViewModel by viewModels()
     private val emvReader = EmvReader()
+
+    // Re-enable NFC when user toggles it back on
+    private val nfcStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            if (intent?.action == NfcAdapter.ACTION_ADAPTER_STATE_CHANGED) {
+                val state = intent.getIntExtra(NfcAdapter.EXTRA_ADAPTER_STATE, NfcAdapter.STATE_OFF)
+                if (state == NfcAdapter.STATE_ON) {
+                    nfcDispatcher.enableReaderMode()
+                }
+            }
+        }
+    }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var readingDialog: AlertDialog? = null
 
@@ -60,6 +78,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         binding.navView.setNavigationItemSelectedListener(this)
 
         nfcDispatcher = NfcDispatcher(this) { tag -> onTagDiscovered(tag) }
+
+        // Listen for NFC toggle so we re-enable reader mode automatically
+        registerReceiver(nfcStateReceiver, IntentFilter(NfcAdapter.ACTION_ADAPTER_STATE_CHANGED))
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -117,6 +138,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onDestroy() {
         super.onDestroy()
         readingDialog?.dismiss()
+        try { unregisterReceiver(nfcStateReceiver) } catch (_: Exception) {}
         scope.cancel()
     }
 
@@ -204,38 +226,52 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     // ── Tag Discovery ──
 
-    private fun onTagDiscovered(tag: Tag) {
-        val isoDep = NfcDispatcher.getIsoDep(tag)
-        if (isoDep == null) {
-            val uid = tag.id?.let { com.tapread.nfc.util.HexUtil.toHex(it) } ?: "unknown"
-            runOnUiThread {
-                com.tapread.nfc.util.HapticUtil.error(this)
-                Snackbar.make(binding.mainContent, "Unsupported card type. UID: $uid", Snackbar.LENGTH_LONG).show()
-            }
-            return
-        }
+    private fun isTngCard(tag: Tag): Boolean {
+        val techs = tag.techList ?: return false
+        return techs.contains("android.nfc.tech.MifareClassic") ||
+               (techs.contains("android.nfc.tech.NfcA") && !techs.contains("android.nfc.tech.IsoDep"))
+    }
 
-        // Haptic pulse on card detect
+    private fun onTagDiscovered(tag: Tag) {
+        // Haptic pulse on any card detect
         runOnUiThread { com.tapread.nfc.util.HapticUtil.pulse(this) }
         showReadingDialog()
 
         scope.launch {
-            val result = withContext(Dispatchers.IO) { emvReader.read(isoDep) }
+            val result = withContext(Dispatchers.IO) {
+                when {
+                    isTngCard(tag) -> {
+                        val tngData = TngCardReader.read(tag)
+                        ScanResult(tng = tngData, error = tngData.error)
+                    }
+                    NfcDispatcher.getIsoDep(tag) != null -> {
+                        emvReader.read(NfcDispatcher.getIsoDep(tag)!!)
+                    }
+                    else -> {
+                        val uid = tag.id?.let { com.tapread.nfc.util.HexUtil.toHex(it) } ?: "unknown"
+                        ScanResult(error = "Unsupported card: $uid")
+                    }
+                }
+            }
+
             dismissReadingDialog()
             viewModel.addScan(result)
 
-            // Haptic success or error
-            if (result.error != null) {
+            if (result.error != null && !result.isTng) {
                 com.tapread.nfc.util.HapticUtil.error(this@MainActivity)
             } else {
                 com.tapread.nfc.util.HapticUtil.success(this@MainActivity)
             }
 
-            val message = if (result.error != null) "Read: ${result.error}"
-                else "Read: ${result.displayLabel}"
+            val message = when {
+                result.isTng && result.tng?.isSuccess == true ->
+                    "TNG: ${result.tng!!.balanceRm} (${result.tng!!.serialStr})"
+                result.isTng -> "TNG: ${result.tng?.error ?: "Read error"}"
+                result.error != null -> "Read: ${result.error}"
+                else -> "Read: ${result.displayLabel}"
+            }
             Snackbar.make(binding.mainContent, message, Snackbar.LENGTH_SHORT).show()
 
-            // Navigate to home if not already there
             val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
             if (currentFragment !is HomeFragment) {
                 supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)

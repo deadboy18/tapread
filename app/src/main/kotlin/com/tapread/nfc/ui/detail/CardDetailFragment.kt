@@ -36,7 +36,7 @@ class CardDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.selectedScan.observe(viewLifecycleOwner) { scan ->
-            scan?.let { renderCard(it.card, it.apduLog) }
+            scan?.card?.let { card -> renderCard(card, scan!!.apduLog) }
         }
     }
 
